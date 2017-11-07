@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">ShoppingList</string>
+    <string name="singIn">SIGN IN</string>
+    <string name="registration">REGISTER</string>
+    <string name="login">LOGIN</string>
+    <string name="password">PASSWORD</string>
+    <string name="addList">ADD SHOPPING LIST</string>
+    <string name="lookLists">LOOK LISTS</string>
+    <string name="statistics">STATISTICS</string>
+    <string name="signOut">SIGN OUT</string>
 </resources>

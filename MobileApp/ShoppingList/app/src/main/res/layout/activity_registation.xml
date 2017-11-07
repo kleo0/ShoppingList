@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="40dp"
+    android:background="@color/colorBackground"
+    >
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:text="@string/registration"
+        android:textColor="@color/colorPrimary"
+        android:paddingBottom="20dp"
+        android:textSize="20dp"/>
+
+    <EditText
+        android:layout_width="match_parent"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:textColorHighlight="@color/colorPrimary"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/white"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingBottom="20dp"
+        android:textColor="@color/colorAccent"
+        android:text="LOGIN"/>
+
+    <EditText
+        android:layout_width="match_parent"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:textColorHighlight="@color/colorPrimary"
+        android:layout_height="wrap_content"
+        android:textColor="@android:color/white"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="10dp"
+        android:paddingRight="10dp"
+        android:paddingBottom="40dp"
+        android:textColor="@color/colorAccent"
+        android:text="PASSWORD"/>
+
+    <com.beardedhen.androidbootstrap.BootstrapButton
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:backgroundTint="@color/colorPrimary"
+        android:layout_gravity="center"
+        android:id="@+id/regReg"
+        app:roundedCorners="true"
+        android:text="@string/registration"/>
+
+    <com.beardedhen.androidbootstrap.BootstrapButton
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:id="@+id/regSignIn"
+        android:layout_margin="20dp"
+        android:backgroundTint="@color/colorPrimary"
+        android:layout_gravity="center"
+        app:roundedCorners="true"
+        app:showOutline="true"
+        android:text="@string/singIn"/>
+
+</LinearLayout>

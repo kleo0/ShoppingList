@@ -1,63 +1,65 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:orientation="vertical"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity"
-    android:weightSum="1">
+    android:background="@color/colorBackground"
+    android:orientation="vertical"
+    android:padding="40dp"
+    tools:context="com.example.klaudia.shoppinglist.MainActivity">
 
-    <RelativeLayout
+    <TextView
         android:layout_width="match_parent"
-        android:layout_height="332dp"
-        android:background="#ffffff"
-        android:id="@+id/ImageContainer">
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:paddingBottom="20dp"
+        android:text="@string/app_name"
+        android:textColor="@color/colorPrimary"
+        android:textSize="20dp" />
 
-        <ImageView
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:id="@+id/imageView"
-            android:src="@drawable/testimage"/>
-
-    </RelativeLayout>
-
-    <RelativeLayout
+    <com.beardedhen.androidbootstrap.BootstrapButton
+        android:id="@+id/mainAddList"
         android:layout_width="match_parent"
-        android:layout_height="42dp"
-        android:layout_alignParentTop="true"
-        android:clickable="true"
-        android:onClick="processImage"
-        android:background="#167865"
-        android:id="@+id/OCRButtonContainer">
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_margin="20dp"
+        android:backgroundTint="#990033"
+        android:text="@string/addList"
+        android:textSize="20sp"
+        app:roundedCorners="true" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Run OCR"
-            android:id="@+id/OCRbutton"
-            android:textSize="18dp"
-            android:layout_centerVertical="true"
-            android:layout_centerHorizontal="true"
-            android:clickable="true"
-            android:onClick="processImage"/>
-    </RelativeLayout>
-
-    <RelativeLayout
+    <com.beardedhen.androidbootstrap.BootstrapButton
+        android:id="@+id/mainMainList"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#e4e3e3"
-        android:id="@+id/OCRTextContainer">
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_margin="20dp"
+        android:backgroundTint="#009966"
+        android:text="@string/lookLists"
+        android:textSize="20sp"
+        app:roundedCorners="true" />
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="OCR Text will appear here"
-            android:id="@+id/OCRTextView"
-            android:textSize="18dp"
-            android:layout_centerVertical="true"
-            android:layout_centerHorizontal="true"
-            android:background="#dedede"
-            android:textColor="#a3a3a3" />
-    </RelativeLayout>
+    <com.beardedhen.androidbootstrap.BootstrapButton
+        android:id="@+id/mainStatistics"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:backgroundTint="#008099"
+        android:text="@string/statistics"
+        android:layout_margin="20dp"
+        android:textSize="20sp"
+        app:roundedCorners="true" />
+
+    <com.beardedhen.androidbootstrap.BootstrapButton
+        android:id="@+id/mainSignOut"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:backgroundTint="@color/colorPrimary"
+        android:text="@string/signOut"
+        android:layout_margin="20dp"
+        android:textSize="20sp"
+        app:roundedCorners="true" />
+
 </LinearLayout>
