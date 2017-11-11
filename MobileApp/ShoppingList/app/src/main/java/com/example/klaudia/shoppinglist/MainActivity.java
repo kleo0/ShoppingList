@@ -11,6 +11,7 @@ import com.beardedhen.androidbootstrap.BootstrapButton;
 public class MainActivity extends AppCompatActivity {
 
     BootstrapButton signOut;
+    BootstrapButton listAdd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,8 +19,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         signOut = (BootstrapButton) findViewById(R.id.mainSignOut);
+        listAdd = (BootstrapButton) findViewById(R.id.mainAddList);
 
         SignOut();
+        ListAdd();
     }
 
     public void SignOut() {
@@ -32,5 +35,16 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+    }
+
+    public void ListAdd() {
+        listAdd.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(view.getContext(), ListAddActivity.class);
+                startActivity(intent);
+                finish();
+            }
+        });
     }
 }
