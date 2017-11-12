@@ -9,4 +9,5 @@
     <string name="statistics">STATISTICS</string>
     <string name="signOut">SIGN OUT</string>
     <string name="next">NEXT </string>
+    <string name="previous">BACK </string>
 </resources>
