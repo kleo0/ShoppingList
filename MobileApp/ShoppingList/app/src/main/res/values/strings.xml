@@ -5,7 +5,9 @@
     <string name="login">LOGIN</string>
     <string name="password">PASSWORD</string>
     <string name="addList">ADD SHOPPING LIST</string>
-    <string name="lookLists">LOOK LISTS</string>
+    <string name="lookLists">SHOPPING LISTS</string>
     <string name="statistics">STATISTICS</string>
     <string name="signOut">SIGN OUT</string>
+    <string name="next">NEXT </string>
+    <string name="previous">BACK </string>
 </resources>
