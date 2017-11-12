@@ -4,7 +4,8 @@ const ACTIONS = ["new", "del", "mod", 'get'];
 
 $res = [
     'ERR' => ERR_OK,
-    'LID' => -1
+    'LID' => -1,
+    'LIST' => ""
 ];
 
 if(!$db_ok) {
@@ -100,7 +101,16 @@ switch($action) {
 
     /* del */
     case ACTIONS[1]:
-        // TODO
+        // Delete only ownership, trigger should handle situation when no-one is using list
+        // TODO add trigger to db
+        try {
+            $sth = $dbh->prepare('delete from list_membership where uid = :uid');
+            $sth->bindParam(':uid', $uid, PDO::PARAM_INT);
+            $sth->execute();
+
+        } catch (Exception $e) {
+            die($e->getMessage());
+        }
         break;
 
     /* mod */
@@ -119,6 +129,21 @@ switch($action) {
 }
 
 /* Get all list products & parse to JSON */
-// TODO
+$products = [];
+try {
+    $sth = $dbh->prepare('select distinct lid,pid,productname,quantity from list_elements,products where pid=:pid');
+    $sth->bindParam(':lid', $lid, PDO::PARAM_INT);
+    $sth->execute();
+
+    $result = $sth->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($result as $r) {
+        $elem = array('name' => $r['productname'], 'q' => $r['quantity']);
+        array_push($products, $elem);
+    }
+    $res['LIST'] = json_encode($result);
+
+} catch (Exception $e) {
+    die($e->getMessage());
+}
 
 finish($res);
