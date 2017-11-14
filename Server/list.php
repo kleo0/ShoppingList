@@ -4,7 +4,7 @@ require_once "connect.php";
 require_once "error.php";
 require_once "consts.php";
 
-const ACTIONS = ["new", "del", "mod", 'get', 'dir'];
+const ACTIONS = ["new", "del", "mod", 'get', 'dir', 'share'];
 
 $res = [
   'ERR' => ERR_OK,
@@ -14,7 +14,7 @@ $res = [
 /* Returns dump of list followed by id */
 function get_list_products(PDO $dbh, $lid)
 {
-  $products = ["lid" => $lid, "shared" => ""];
+  $products = ["lid" => $lid, "users" => "[]"];
   // TODO
   try {
     $sth = $dbh->prepare('select distinct lid,pid,productname,quantity from list_elements,products where pid=:pid');
@@ -30,6 +30,21 @@ function get_list_products(PDO $dbh, $lid)
 
   } catch (Exception $e) {
     die($e->getMessage());
+  }
+}
+
+/* Check user permission to RW on list */
+function check_user_list_permission(PDO $dbh, $lid, $uid) {
+  try {
+    $sth = $dbh->prepare('select uid,lid from list_membership where lid=:lid and uid=:uid');
+    $sth->bindParam(':lid', $lid, PDO::PARAM_INT);
+    $sth->bindParam(':uid', $uid, PDO::PARAM_INT);
+    $sth->execute();
+
+    return $sth->rowCount() > 0;
+
+  } catch (Exception $e) {
+    return false;
   }
 }
 
@@ -87,7 +102,7 @@ switch ($action) {
 
   /* ACTION NEW */
   // Requires input data:
-  //   $data = {list_name: <LIST_NAME>, list_products: [<LIST_PRODUCTS>]}
+  //   $data = {list_name: <LIST_NAME>, list_products: [<LIST_PRODUCTS>], users: [<USERS>]}
   // Returns:
   //   See: get_list_products(...)
   case ACTIONS[0]:
@@ -163,9 +178,25 @@ switch ($action) {
     // TODO
     break;
 
-  /* get */
+  /* ACTION GET */
+  // Requires input data:
+  //   $data = {list_id: <LIST_ID>}
+  // Returns:
+  //   $out  = {}
   case ACTIONS[3]:
-    $res['JSON_DATA'] = get_list_products($dbh, $lid);
+    if (!array_key_exists('list_id', $data)) {
+      $res['ERR'] = ERR_NOT_ALL_VARS_ARE_SET;
+      finish($res);
+    }
+    $lid = intval($data['list_id']);
+
+    if(check_user_list_permission($dbh, $lid, $uid)) {
+      $res['JSON_DATA'] = get_list_products($dbh, $lid);
+
+    } else {
+      $res['ERR'] = ERR_USER_NOT_AUTHORIZED;
+      finish($res);
+    }
     break;
 
   /* dir */
@@ -179,6 +210,8 @@ switch ($action) {
     }
     break;
 */
+
+  // TODO action share
   default:
     die("This action is available, but not supported yet. Contact the server admin for more info!");
     break;
