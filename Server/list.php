@@ -14,23 +14,51 @@ $res = [
 /* Returns dump of list followed by id */
 function get_list_products(PDO $dbh, $lid)
 {
-  $products = ["lid" => $lid, "users" => "[]"];
-  // TODO
+  $data = ["lid" => $lid, "users" => "[]", "products" => "[]"];
+
+  // Get all products
   try {
-    $sth = $dbh->prepare('select distinct lid,pid,productname,quantity from list_elements,products where pid=:pid');
+    $sth = $dbh->prepare("select products.productname, list_elements.quantity from products, list_elements " .
+      "where products.pid  = list_elements.pid and list_elements.lid = :lid");
+
     $sth->bindParam(':lid', $lid, PDO::PARAM_INT);
     $sth->execute();
 
     $result = $sth->fetchAll(PDO::FETCH_ASSOC);
+
+    $products = [];
     foreach ($result as $r) {
       $elem = array('name' => $r['productname'], 'q' => $r['quantity']);
       array_push($products, $elem);
     }
-    return json_encode($products);
+    $data['products'] = json_encode($products);
 
   } catch (Exception $e) {
     die($e->getMessage());
   }
+
+  // Get all list users
+  try {
+    $sth = $dbh->prepare("select users.nickname from users,list_membership where " .
+      "users.uid = list_membership.uid and list_membership.lid = :lid");
+
+    $sth->bindParam(':lid', $lid, PDO::PARAM_INT);
+    $sth->execute();
+
+    $result = $sth->fetchAll(PDO::FETCH_ASSOC);
+
+    $users = [];
+    foreach ($result as $r) {
+      $elem = $r['nickname'];
+      array_push($users, $elem);
+    }
+    $data['users'] = json_encode($users);
+
+  } catch (Exception $e) {
+    die($e->getMessage());
+  }
+
+  return json_encode($data);
 }
 
 /* Check user permission to RW on list */
