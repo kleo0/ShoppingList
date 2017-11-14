@@ -19,3 +19,4 @@ const ERR_INVALID_CREDENTIALS = 5;       // invalid login or password
 const ERR_USER_NOT_LOGGED = 6;
 const ERR_ACTION_NOT_RECOGNIZED = 7;
 const ERR_INVALID_PRODUCTS_DATA = 8;
+const ERR_INPUT_DATA_MALFORMED = 9;
