@@ -235,11 +235,12 @@ switch ($action) {
   //   $out  = [{id: <LIST_ID>, n: <LIST_NAME>}, ...]
   case ACTIONS[4]:
     try {
-      $sth = $dbh->prepare("select lists.lid, lists.listname from lists, list_membership, users " .
-        "where lists.lid = list_membership.lid and users.uid = list_membership.uid and users.uid = :uid");
+      $sth = $dbh->prepare("select lists.lid, lists.listname from lists, list_membership " .
+        "where lists.lid = list_membership.lid and list_membership.uid = :uid");
+      $sth->bindParam(':uid', $uid, PDO::PARAM_INT);
+      $sth->execute();
 
-      $sth->bindParam(':uid', $uid);
-      $result = $sth->fetchAll(PDO::FETCH_ASSOC, PDO::PARAM_INT);
+      $result = $sth->fetchAll(PDO::FETCH_ASSOC);
 
       $lists = [];
       foreach ($result as $r) {
@@ -247,7 +248,9 @@ switch ($action) {
         array_push($lists, $elem);
       }
 
-      $res['JSON_DATA'] = json_encode($lists);
+      $data = json_encode($lists);
+      $data = str_replace("\\", "", $data);
+      $res['JSON_DATA'] = $data;
 
     } catch (Exception $e) {
       die($e->getMessage());
