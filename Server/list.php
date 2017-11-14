@@ -58,6 +58,7 @@ function get_list_products(PDO $dbh, $lid)
     die($e->getMessage());
   }
 
+  $data = str_replace("\\", "", $data);
   return json_encode($data);
 }
 
@@ -227,19 +228,34 @@ switch ($action) {
     }
     break;
 
-  /* dir */
-/*  case ACTIONS[4]:
-  TODO   try {
-      $sth = $dbh->prepare("select distinct users.uid,users.nickname,list_membership.lid,lists.listname" .
-        " from list_membership,users,lists where lists.lid = :lid");
-      $sth->bindParam(':lid', $lid);
+  /* ACTION DIR */
+  // Requires input data:
+  //   $data = {}
+  // Returns:
+  //   $out  = [{id: <LIST_ID>, n: <LIST_NAME>}, ...]
+  case ACTIONS[4]:
+    try {
+      $sth = $dbh->prepare("select lists.lid, lists.listname from lists, list_membership, users " .
+        "where lists.lid = list_membership.lid and users.uid = list_membership.uid and users.uid = :uid");
+
+      $sth->bindParam(':uid', $uid);
+      $result = $sth->fetchAll(PDO::FETCH_ASSOC, PDO::PARAM_INT);
+
+      $lists = [];
+      foreach ($result as $r) {
+        $elem = array('id' => $r['lid'], 'n' => $r['listname']);
+        array_push($lists, $elem);
+      }
+
+      $res['JSON_DATA'] = json_encode($lists);
+
     } catch (Exception $e) {
       die($e->getMessage());
     }
     break;
-*/
 
   // TODO action share
+
   default:
     die("This action is available, but not supported yet. Contact the server admin for more info!");
     break;
