@@ -52,13 +52,13 @@ if($sth->rowCount() != 1) {
 }
 
 if(password_verify($password, $pass_hash)) {
-  $token = base64_encode(random_bytes(255));
-  $token = substr($token, 0, 255);
+  $token = base64_encode(random_bytes(TOKEN_LEN));
+  $token = substr($token, 0, TOKEN_LEN);
 
   try {
     $sth = $dbh->prepare('insert into logged_users(uid,token) values(:uid,:token)');
     $sth->bindParam(':uid', $uid, PDO::PARAM_INT);
-    $sth->bindParam(':token', $token, PDO::PARAM_STR, 255);
+    $sth->bindParam(':token', $token, PDO::PARAM_STR, TOKEN_LEN);
     $sth->execute();
 
   } catch (Exception $e) {
