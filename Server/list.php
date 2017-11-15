@@ -76,6 +76,41 @@ function check_user_list_permission(PDO $dbh, $lid, $uid) {
   }
 }
 
+/* Share list with users */
+function share_list_with_users(PDO $dbh, $lid, array $users) {
+  // get id of all users is
+  $user_ids = null;
+  try {
+    $inQuery = implode(',', array_fill(0, count($users), '?'));
+    $sth = $dbh->prepare("SELECT uid FROM users WHERE nickname IN (" . $inQuery . ")");
+    foreach ($users as $i => $username) {
+      $sth->bindValue($i + 1, $username, PDO::PARAM_STR);
+    }
+    $sth->execute();
+    $user_ids = $sth->fetchAll(PDO::FETCH_NUM);
+
+  } catch (Exception $e) {
+    error_log($e->getMessage());
+    $res['ERR'] = ERR_INPUT_DATA_MALFORMED;
+    finish($res);
+  }
+
+  // add all users to list in db
+  try {
+    $inQuery = implode(',', array_fill(0, count($user_ids), "($lid,?)"));
+    $sth = $dbh->prepare("INSERT INTO list_membership(lid,uid) VALUES " . $inQuery);
+    foreach ($user_ids as $i => $user_id) {
+      $sth->bindValue($i + 1, $user_id[0]);
+    }
+    $sth->execute();
+
+  } catch (Exception $e) {
+    error_log($e->getMessage());
+    $res['ERR'] = ERR_INPUT_DATA_MALFORMED;
+    finish($res);
+  }
+}
+
 /* standard script */
 if (!$db_ok) {
   $res['ERR'] = ERR_DATABASE;
@@ -144,14 +179,8 @@ switch ($action) {
     } else {
       $list_name = $data['list_name'];
 
-      // verify json FIXME
-/*      $json_list_data = json_decode($data['list_products']);
-      if ($json_list_data === null && json_last_error() !== JSON_ERROR_NONE) {
-        $res['ERR'] = ERR_INVALID_PRODUCTS_DATA;
-        finish($res);
-      }
-*/
       // create list
+      $lid = -1;
       try {
         $sth = $dbh->prepare('insert into lists (listname) VALUES (:listname)');
         $sth->bindParam(':listname', $list_name, MAX_LIST_NAME);
@@ -164,7 +193,7 @@ switch ($action) {
         finish($res);
       }
 
-      // update perm table
+      // update perm table for creator
       try {
         $sth = $dbh->prepare('insert into list_membership(lid,uid) VALUES (:lid,:uid)');
         $sth->bindParam(':lid', $lid);
@@ -173,6 +202,11 @@ switch ($action) {
 
       } catch (Exception $e) {
         die($e->getMessage());
+      }
+
+      // update perm table for optional additional users
+      if(array_key_exists('users', $data) && count($data['users']) > 0) {
+        share_list_with_users($dbh, $lid, $data['users']);
       }
 
       // add all values to the list
@@ -280,38 +314,7 @@ switch ($action) {
       finish($res);
     }
 
-    // get id of all users is
-    $user_ids = null;
-    try {
-      $inQuery = implode(',', array_fill(0, count($users), '?'));
-      $sth = $dbh->prepare("SELECT uid FROM users WHERE nickname IN (" . $inQuery . ")");
-      foreach ($users as $i => $username) {
-        $sth->bindValue($i + 1, $username, PDO::PARAM_STR);
-      }
-      $sth->execute();
-      $user_ids = $sth->fetchAll(PDO::FETCH_NUM);
-
-    } catch (Exception $e) {
-      error_log($e->getMessage());
-      $res['ERR'] = ERR_INPUT_DATA_MALFORMED;
-      finish($res);
-    }
-
-    // add all users to list in db
-    try {
-      $inQuery = implode(',', array_fill(0, count($user_ids), "($lid,?)"));
-      $sth = $dbh->prepare("INSERT INTO list_membership(lid,uid) VALUES " . $inQuery);
-      foreach ($user_ids as $i => $user_id) {
-        $sth->bindValue($i + 1, $user_id[0]);
-      }
-      $sth->execute();
-
-    } catch (Exception $e) {
-      error_log($e->getMessage());
-      $res['ERR'] = ERR_INPUT_DATA_MALFORMED;
-      finish($res);
-    }
-
+    share_list_with_users($dbh, $lid, $users);
     $res['JSON_DATA'] = get_list_products($dbh, $lid);
     break;
 
