@@ -18,12 +18,13 @@
         android:textSize="20dp"/>
 
     <EditText
+        android:id="@+id/login"
         android:layout_width="match_parent"
+        android:layout_height="wrap_content"
         android:paddingLeft="10dp"
         android:paddingRight="10dp"
-        android:textColorHighlight="@color/colorPrimary"
-        android:layout_height="wrap_content"
-        android:textColor="@android:color/white"/>
+        android:textColor="@android:color/white"
+        android:textColorHighlight="@color/colorPrimary" />
 
     <TextView
         android:layout_width="match_parent"
@@ -36,6 +37,7 @@
 
     <EditText
         android:layout_width="match_parent"
+        android:id="@+id/password"
         android:paddingLeft="10dp"
         android:paddingRight="10dp"
         android:textColorHighlight="@color/colorPrimary"

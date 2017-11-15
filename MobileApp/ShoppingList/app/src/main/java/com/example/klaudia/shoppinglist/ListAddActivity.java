@@ -1,5 +1,6 @@
 package com.example.klaudia.shoppinglist;
 
+import android.content.Intent;
 import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -44,8 +45,6 @@ public class ListAddActivity extends AppCompatActivity {
         instruction = (TextView) findViewById(R.id.instruction);
         list = (ListView) findViewById(R.id.productList);
         arrayList = new ArrayList<String>();
-
-
 
         edit = (EditText) findViewById(R.id.addListUserName);
 
@@ -103,7 +102,7 @@ public class ListAddActivity extends AppCompatActivity {
                         CheckList();
                         break;
                     case 3:
-
+                        SaveData();
                         break;
                     default:
                         break;
@@ -196,5 +195,12 @@ public class ListAddActivity extends AppCompatActivity {
         arrayAdapter = new ArrayAdapter<String>(this,R.layout.addlistrow,arrayList);
         list.setAdapter(arrayAdapter);
 
+    }
+
+    public void SaveData() {
+        //TODO send to server
+        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+        startActivity(intent);
+        finish();
     }
 }
