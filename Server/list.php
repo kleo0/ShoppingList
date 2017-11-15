@@ -88,7 +88,8 @@ if (empty($_POST['token']) || empty($_POST['action']) || empty($_POST['data'])) 
   finish($res);
 }
 
-$token = $_POST['token'];
+$token = urldecode($_POST['token']);
+$token = str_replace("\"", "", $token);
 $action = $_POST['action'];
 $uid = -123;
 
@@ -105,6 +106,7 @@ try {
   $sth->execute();
 
   if ($sth->rowCount() != 1) {
+    error_log("Cannot login with token: " . $token);
     throw new Exception("User is not logged");
   } else {
     $result = $sth->fetch(PDO::FETCH_ASSOC);
@@ -232,7 +234,7 @@ switch ($action) {
   // Requires input data:
   //   $data = {}
   // Returns:
-  //   $out  = [{id: <LIST_ID>, n: <LIST_NAME>}, ...]
+  //   $out  = {lists: [{id: <LIST_ID>, n: <LIST_NAME>}, ...]}
   case ACTIONS[4]:
     try {
       $sth = $dbh->prepare("select lists.lid, lists.listname from lists, list_membership " .
@@ -249,7 +251,9 @@ switch ($action) {
       }
 
       $data = json_encode($lists);
+      $data = json_encode(['lists' => $data]);
       $data = str_replace("\\", "", $data);
+
       $res['JSON_DATA'] = $data;
 
     } catch (Exception $e) {
