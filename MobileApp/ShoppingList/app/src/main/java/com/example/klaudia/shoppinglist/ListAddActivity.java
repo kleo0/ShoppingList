@@ -5,6 +5,7 @@ import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.View;
 import android.widget.ArrayAdapter;
@@ -14,7 +15,17 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.beardedhen.androidbootstrap.BootstrapButton;
+import com.google.gson.JsonObject;
+import com.koushikdutta.async.future.FutureCallback;
+import com.koushikdutta.ion.Ion;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.w3c.dom.Text;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -23,15 +34,21 @@ public class ListAddActivity extends AppCompatActivity {
     BootstrapButton next;
     BootstrapButton previous;
     TextView instruction;
+    TextView userText;
     ListView list;
     EditText edit;
     String currentName;
     String currentProducts;
     String currentUsers;
     String[] productArray;
+    String[] pqArray;
     ArrayAdapter<String> arrayAdapter;
     ArrayList<String> arrayList;
+    JSONArray productsJArray;
+    ArrayList usersArray;
     Integer step;
+
+    StoreData storeData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,13 +60,19 @@ public class ListAddActivity extends AppCompatActivity {
         previous = new BootstrapButton(getBaseContext());
         previous = (BootstrapButton) findViewById(R.id.previous);
         instruction = (TextView) findViewById(R.id.instruction);
+        userText = (TextView) findViewById(R.id.userText);
         list = (ListView) findViewById(R.id.productList);
         arrayList = new ArrayList<String>();
+        productsJArray = new JSONArray();
+        usersArray = new ArrayList<>();
+
+        storeData = new StoreData(this);
 
         edit = (EditText) findViewById(R.id.addListUserName);
 
         step = 0;
         previous.setVisibility(View.GONE);
+        userText.setVisibility(View.GONE);
         CheckText();
         ButtonNext();
         ButtonPrevious();
@@ -137,7 +160,7 @@ public class ListAddActivity extends AppCompatActivity {
     }
 
     public void SetAddProducts() {
-        instruction.setText("Type products separate it by 'Enter'");
+        instruction.setText("Type products separate it by 'Enter' and quantity separate by 'Space'. Example: egg 3");
         currentName = edit.getText().toString();
         edit.setText(currentProducts);
         previous.setVisibility(View.VISIBLE);
@@ -164,7 +187,7 @@ public class ListAddActivity extends AppCompatActivity {
     }
 
     public void SetAddProductsBack() {
-        instruction.setText("Type products separate it by 'Enter'");
+        instruction.setText("Type products separate it by 'Enter' and quantity separate by 'Space'. Example: egg 3");
         edit.setText(currentProducts);
         next.setShowOutline(true);
         next.setEnabled(false);
@@ -179,13 +202,19 @@ public class ListAddActivity extends AppCompatActivity {
         next.setBackgroundColor(0x009966);
         next.setShowOutline(true);
         next.setEnabled(false);
+        userText.setVisibility(View.GONE);
     }
 
     public void CheckList() {
+        currentUsers = edit.getText().toString();
         instruction.setText("New Shopping List "+currentName);
         edit.setVisibility(View.GONE);
         next.setText("Create ");
         next.setBackgroundColor(Color.GREEN);
+
+        userText.setVisibility(View.VISIBLE);
+        userText.setText("USERS: "+currentUsers);
+
         list.setVisibility(View.VISIBLE);
         arrayList.clear();
         productArray = currentProducts.split("\\n");
@@ -195,12 +224,74 @@ public class ListAddActivity extends AppCompatActivity {
         arrayAdapter = new ArrayAdapter<String>(this,R.layout.addlistrow,arrayList);
         list.setAdapter(arrayAdapter);
 
+        //dzielenie produktu na nazwę i ilość
+        for(int i = 0; i<productArray.length;i++ ) {
+            pqArray = productArray[i].split(" ");
+            Integer n = pqArray.length-1;
+            JSONObject obj = new JSONObject();
+            if(TextUtils.isDigitsOnly(pqArray[n])) {
+                String str="";
+                for(int k = 0; k < n; k++) {
+                    str  = str + pqArray[k];
+                }
+                try {
+                    obj = new JSONObject("{n:"+str+",q:"+pqArray[n]+"}");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            } else {
+                String str="";
+                for(int k = 0; k <= n; k++) {
+                    str  = str + pqArray[k];
+                }
+                try {
+                    obj = new JSONObject("{n:"+str+",q:1}");
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+            }
+            productsJArray.put(obj);
+        }
+        String[] users = currentUsers.split("\\n");
+        for(int i=0; i<users.length; i++) {
+            usersArray.add(users[i]);
+        }
+
     }
 
     public void SaveData() {
-        //TODO send to server
-        Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-        startActivity(intent);
-        finish();
+        final JSONObject sendJSON = new JSONObject();
+        try {
+            sendJSON.put("list_name",currentName);
+            sendJSON.put("list_products",productsJArray);
+            sendJSON.put("users",usersArray);
+
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        try {
+            Ion.with(getApplicationContext())
+                    .load("http://skyapplab.duckdns.org:7777/list.php")
+                    .setBodyParameter("token", URLEncoder.encode(storeData.GetToken(), "UTF-8"))
+                    .setBodyParameter("action","new")
+                    .setBodyParameter("data",sendJSON.toString())
+                    .asJsonObject()
+                    .setCallback(new FutureCallback<JsonObject>() {
+                        @Override
+                        public void onCompleted(Exception e, JsonObject result) {
+                            if (result.get("ERR").toString().equals("0")) {
+                                // TODO take list id
+                                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                startActivity(intent);
+                                finish();
+                            } else {
+                                Toast.makeText(getApplicationContext(), "Send data error!"+result.get("ERR").toString()+sendJSON.toString(), Toast.LENGTH_LONG).show();
+                            }
+                        }
+                    });
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
     }
 }

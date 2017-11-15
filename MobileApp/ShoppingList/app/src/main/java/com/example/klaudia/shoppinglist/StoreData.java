@@ -23,6 +23,6 @@ public class StoreData {
     }
 
     public String GetToken() {
-        return preferences.getString(TOKEN_TEXT, "");
+        return preferences.getString(TOKEN_TEXT,"");
     }
 }
