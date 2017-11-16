@@ -24,8 +24,11 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.w3c.dom.Text;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
+import java.net.InetAddress;
 import java.net.URLEncoder;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -207,13 +210,13 @@ public class ListAddActivity extends AppCompatActivity {
 
     public void CheckList() {
         currentUsers = edit.getText().toString();
-        instruction.setText("New Shopping List "+currentName);
+        instruction.setText("New Shopping List " + currentName);
         edit.setVisibility(View.GONE);
         next.setText("Create ");
         next.setBackgroundColor(Color.GREEN);
 
         userText.setVisibility(View.VISIBLE);
-        userText.setText("USERS: "+currentUsers);
+        userText.setText("USERS: " + currentUsers);
 
         list.setVisibility(View.VISIBLE);
         arrayList.clear();
@@ -221,31 +224,31 @@ public class ListAddActivity extends AppCompatActivity {
 
         arrayList.addAll((Arrays.asList(productArray)));
 
-        arrayAdapter = new ArrayAdapter<String>(this,R.layout.addlistrow,arrayList);
+        arrayAdapter = new ArrayAdapter<String>(this, R.layout.addlistrow, arrayList);
         list.setAdapter(arrayAdapter);
 
         //dzielenie produktu na nazwę i ilość
-        for(int i = 0; i<productArray.length;i++ ) {
+        for (int i = 0; i < productArray.length; i++) {
             pqArray = productArray[i].split(" ");
-            Integer n = pqArray.length-1;
+            Integer n = pqArray.length - 1;
             JSONObject obj = new JSONObject();
-            if(TextUtils.isDigitsOnly(pqArray[n])) {
-                String str="";
-                for(int k = 0; k < n; k++) {
-                    str  = str + pqArray[k];
+            if (TextUtils.isDigitsOnly(pqArray[n])) {
+                String str = "";
+                for (int k = 0; k < n; k++) {
+                    str = str + pqArray[k];
                 }
                 try {
-                    obj = new JSONObject("{n:"+str+",q:"+pqArray[n]+"}");
+                    obj = new JSONObject("{n:" + str + ",q:" + pqArray[n] + "}");
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
             } else {
-                String str="";
-                for(int k = 0; k <= n; k++) {
-                    str  = str + pqArray[k];
+                String str = "";
+                for (int k = 0; k <= n; k++) {
+                    str = str + pqArray[k];
                 }
                 try {
-                    obj = new JSONObject("{n:"+str+",q:1}");
+                    obj = new JSONObject("{n:" + str + ",q:1}");
                 } catch (JSONException e) {
                     e.printStackTrace();
                 }
@@ -254,18 +257,19 @@ public class ListAddActivity extends AppCompatActivity {
             productsJArray.put(obj);
         }
         String[] users = currentUsers.split("\\n");
-        for(int i=0; i<users.length; i++) {
+        for (int i = 0; i < users.length; i++) {
             usersArray.add(users[i]);
         }
 
     }
 
     public void SaveData() {
+
         final JSONObject sendJSON = new JSONObject();
         try {
-            sendJSON.put("list_name",currentName);
-            sendJSON.put("list_products",productsJArray);
-            sendJSON.put("users",usersArray);
+            sendJSON.put("list_name", currentName);
+            sendJSON.put("list_products", productsJArray);
+            sendJSON.put("users", usersArray);
 
         } catch (JSONException e) {
             e.printStackTrace();
@@ -274,24 +278,28 @@ public class ListAddActivity extends AppCompatActivity {
             Ion.with(getApplicationContext())
                     .load("http://skyapplab.duckdns.org:7777/list.php")
                     .setBodyParameter("token", URLEncoder.encode(storeData.GetToken(), "UTF-8"))
-                    .setBodyParameter("action","new")
-                    .setBodyParameter("data",sendJSON.toString())
+                    .setBodyParameter("action", "new")
+                    .setBodyParameter("data", sendJSON.toString())
                     .asJsonObject()
                     .setCallback(new FutureCallback<JsonObject>() {
                         @Override
                         public void onCompleted(Exception e, JsonObject result) {
-                            if (result.get("ERR").toString().equals("0")) {
-                                // TODO take list id
-                                Intent intent = new Intent(getApplicationContext(), MainActivity.class);
-                                startActivity(intent);
-                                finish();
+                            if (result != null) {
+                                if (result.get("ERR").toString().equals("0")) {
+                                    Intent intent = new Intent(getApplicationContext(), MainActivity.class);
+                                    startActivity(intent);
+                                    finish();
+                                } else {
+                                    Toast.makeText(getApplicationContext(), "Send data error!" + result.get("ERR").toString() + sendJSON.toString(), Toast.LENGTH_LONG).show();
+                                }
                             } else {
-                                Toast.makeText(getApplicationContext(), "Send data error!"+result.get("ERR").toString()+sendJSON.toString(), Toast.LENGTH_LONG).show();
+                                Toast.makeText(getApplicationContext(),"Check internet connection!", Toast.LENGTH_LONG).show();
                             }
                         }
                     });
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
+
     }
 }

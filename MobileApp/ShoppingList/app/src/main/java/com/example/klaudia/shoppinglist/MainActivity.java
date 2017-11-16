@@ -12,6 +12,7 @@ public class MainActivity extends AppCompatActivity {
 
     BootstrapButton signOut;
     BootstrapButton listAdd;
+    BootstrapButton listShow;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -20,9 +21,11 @@ public class MainActivity extends AppCompatActivity {
 
         signOut = (BootstrapButton) findViewById(R.id.mainSignOut);
         listAdd = (BootstrapButton) findViewById(R.id.mainAddList);
+        listShow = (BootstrapButton) findViewById(R.id.mainMainList);
 
         SignOut();
         ListAdd();
+        ListShow();
     }
 
     public void SignOut() {
@@ -42,6 +45,17 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(view.getContext(), ListAddActivity.class);
+                startActivity(intent);
+                finish();
+            }
+        });
+    }
+
+    public void ListShow() {
+        listShow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(view.getContext(), UserListActivity.class);
                 startActivity(intent);
                 finish();
             }

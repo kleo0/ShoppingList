@@ -2,5 +2,7 @@
     android:id="@+id/Row"
     android:layout_width="fill_parent"
     android:layout_height="wrap_content"
-    android:textSize="15sp" >
+    android:padding="10dp"
+    android:background="@drawable/rounded_corners"
+    android:textSize="18sp" >
 </TextView>

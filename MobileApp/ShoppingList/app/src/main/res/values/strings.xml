@@ -10,4 +10,5 @@
     <string name="signOut">SIGN OUT</string>
     <string name="next">NEXT </string>
     <string name="previous">BACK </string>
+    <string name="title_activity_user_list">UserListActivity</string>
 </resources>
