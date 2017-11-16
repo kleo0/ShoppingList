@@ -58,8 +58,7 @@ function get_list_products(PDO $dbh, $lid)
     die($e->getMessage());
   }
 
-  $data = str_replace("\\", "", $data);
-  return json_encode($data);
+  return stripslashes(json_encode($data));
 }
 
 /* Check user permission to RW on list */
@@ -88,9 +87,12 @@ if (empty($_POST['token']) || empty($_POST['action']) || empty($_POST['data'])) 
   finish($res);
 }
 
-$token = $_POST['token'];
+$token = urldecode($_POST['token']);
+$token = str_replace("\"", "", $token);
 $action = $_POST['action'];
 $uid = -123;
+
+/* Verify correctness of JSON data */
 
 $data = json_decode($_POST['data'], true);
 if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
@@ -105,6 +107,7 @@ try {
   $sth->execute();
 
   if ($sth->rowCount() != 1) {
+    error_log("Cannot login with token: " . $token);
     throw new Exception("User is not logged");
   } else {
     $result = $sth->fetch(PDO::FETCH_ASSOC);
@@ -182,7 +185,7 @@ switch ($action) {
   // Requires input data:
   //   $data = {list_id: <LIST_ID>}
   // Returns:
-  //   $out  = {}
+  //   See: {}
   case ACTIONS[1]:
     if (!array_key_exists('list_id', $data)) {
       $res['ERR'] = ERR_NOT_ALL_VARS_ARE_SET;
@@ -211,7 +214,7 @@ switch ($action) {
   // Requires input data:
   //   $data = {list_id: <LIST_ID>}
   // Returns:
-  //   $out  = {}
+  //   See: get_list_products(...)
   case ACTIONS[3]:
     if (!array_key_exists('list_id', $data)) {
       $res['ERR'] = ERR_NOT_ALL_VARS_ARE_SET;
@@ -232,7 +235,7 @@ switch ($action) {
   // Requires input data:
   //   $data = {}
   // Returns:
-  //   $out  = [{id: <LIST_ID>, n: <LIST_NAME>}, ...]
+  //   $out  = {lists: [{id: <LIST_ID>, n: <LIST_NAME>}, ...]}
   case ACTIONS[4]:
     try {
       $sth = $dbh->prepare("select lists.lid, lists.listname from lists, list_membership " .
@@ -249,15 +252,68 @@ switch ($action) {
       }
 
       $data = json_encode($lists);
-      $data = str_replace("\\", "", $data);
-      $res['JSON_DATA'] = $data;
+      $data = json_encode(['lists' => $data]);
+
+      $res['JSON_DATA'] = stripslashes($data);
 
     } catch (Exception $e) {
       die($e->getMessage());
     }
     break;
 
-  // TODO action share
+  /* ACTION SHARE */
+  // Requires input data:
+  //   $data = {list_id: <LIST_ID>, users: [<USERS>]}
+  // Returns:
+  //   See: get_list_products(...)
+  case ACTIONS[5]:
+
+    if (!array_key_exists('list_id', $data) || !array_key_exists('users', $data)) {
+      $res['ERR'] = ERR_NOT_ALL_VARS_ARE_SET;
+      finish($res);
+    }
+    $lid = intval($data['list_id']);
+    $users = $data['users'];
+
+    if(!check_user_list_permission($dbh, $lid, $uid)) {
+      $res['ERR'] = ERR_USER_NOT_AUTHORIZED;
+      finish($res);
+    }
+
+    // get id of all users is
+    $user_ids = null;
+    try {
+      $inQuery = implode(',', array_fill(0, count($users), '?'));
+      $sth = $dbh->prepare("SELECT uid FROM users WHERE nickname IN (" . $inQuery . ")");
+      foreach ($users as $i => $username) {
+        $sth->bindValue($i + 1, $username, PDO::PARAM_STR);
+      }
+      $sth->execute();
+      $user_ids = $sth->fetchAll(PDO::FETCH_NUM);
+
+    } catch (Exception $e) {
+      error_log($e->getMessage());
+      $res['ERR'] = ERR_INPUT_DATA_MALFORMED;
+      finish($res);
+    }
+
+    // add all users to list in db
+    try {
+      $inQuery = implode(',', array_fill(0, count($user_ids), "($lid,?)"));
+      $sth = $dbh->prepare("INSERT INTO list_membership(lid,uid) VALUES " . $inQuery);
+      foreach ($user_ids as $i => $user_id) {
+        $sth->bindValue($i + 1, $user_id[0]);
+      }
+      $sth->execute();
+
+    } catch (Exception $e) {
+      error_log($e->getMessage());
+      $res['ERR'] = ERR_INPUT_DATA_MALFORMED;
+      finish($res);
+    }
+
+    $res['JSON_DATA'] = get_list_products($dbh, $lid);
+    break;
 
   default:
     die("This action is available, but not supported yet. Contact the server admin for more info!");
