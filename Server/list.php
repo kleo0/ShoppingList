@@ -269,7 +269,7 @@ switch ($action) {
   // Requires input data:
   //   $data = {}
   // Returns:
-  //   $out  = {lists: [{id: <LIST_ID>, n: <LIST_NAME>}, ...]}
+  //   $out  = [{id: <LIST_ID>, n: <LIST_NAME>}, ...]
   case ACTIONS[4]:
     try {
       $sth = $dbh->prepare("select lists.lid, lists.listname from lists, list_membership " .
@@ -285,10 +285,7 @@ switch ($action) {
         array_push($lists, $elem);
       }
 
-      $data = json_encode($lists);
-      $data = json_encode(['lists' => $data]);
-
-      $res['JSON_DATA'] = stripslashes($data);
+      $res['JSON_DATA'] = $lists;
 
     } catch (Exception $e) {
       die($e->getMessage());
