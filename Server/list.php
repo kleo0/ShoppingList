@@ -28,7 +28,7 @@ function get_list_products(PDO $dbh, $lid)
 
     $products = [];
     foreach ($result as $r) {
-      $elem = array('name' => $r['productname'], 'q' => $r['quantity']);
+      $elem = array('n' => $r['productname'], 'q' => $r['quantity']);
       array_push($products, $elem);
     }
     $data['products'] = json_encode($products);
@@ -111,6 +111,34 @@ function share_list_with_users(PDO $dbh, $lid, array $users) {
   }
 }
 
+/* Determine product ids basing on product names
+ * Returns map [name,id] with only found products
+ */
+function get_products_id(PDO $dbh, array $product_names) {
+  $ids = [];
+
+  try {
+    // use dummy check (1-1) for now, upgrade later
+    $inQuery = implode(',', array_fill(0, count($product_names), '?'));
+    $sth = $dbh->prepare('SELECT pid,productname FROM products WHERE productname IN (' . $inQuery . ')');
+
+    foreach ($product_names as $i => $product_name) {
+      $sth->bindValue($i + 1, $product_name, PDO::PARAM_STR);
+    }
+    $sth->execute();
+
+    $query_results = $sth->fetchAll(PDO::FETCH_ASSOC);
+    foreach ($query_results as $query_result) {
+      $ids[$query_result['productname']] = $query_result['pid'];
+    }
+
+  } catch (Exception $e) {
+    error_log($e);
+  }
+
+  return $ids;
+}
+
 /* standard script */
 if (!$db_ok) {
   $res['ERR'] = ERR_DATABASE;
@@ -128,9 +156,10 @@ $action = $_POST['action'];
 $uid = -123;
 
 /* Verify correctness of JSON data */
-
 $data = json_decode($_POST['data'], true);
 if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
+  error_log(json_last_error_msg());
+  error_log($_POST['data']);
   $res['ERR'] = ERR_INPUT_DATA_MALFORMED;
   finish($res);
 }
@@ -189,6 +218,7 @@ switch ($action) {
         $lid = intval($dbh->lastInsertId('lid'));
 
       } catch (Exception $e) {
+        error_log($e->getMessage());
         $res['ERR'] = ERR_INPUT_DATA_MALFORMED;
         finish($res);
       }
@@ -201,7 +231,8 @@ switch ($action) {
         $sth->execute();
 
       } catch (Exception $e) {
-        die($e->getMessage());
+        error_log($e->getMessage());
+        $res['ERR'] = ERR_DATABASE;
       }
 
       // update perm table for optional additional users
@@ -209,8 +240,46 @@ switch ($action) {
         share_list_with_users($dbh, $lid, $data['users']);
       }
 
-      // add all values to the list
-      // TODO
+      // get all known pids
+      $product_names = [];
+      foreach ($data['list_products'] as $product) {
+        array_push($product_names, $product['n']);
+      }
+      $ids = get_products_id($dbh, $product_names);
+
+      // get unknown products, diff between names, and keys (names) of known products
+      $unknown_products = array_diff($product_names, array_keys($ids));
+
+      // insert unknown products & get their ids
+      foreach ($unknown_products as $unknown_product) {
+        try {
+          $sth = $dbh->prepare("INSERT INTO products(productname) VALUES (:productname)");
+          $sth->bindParam(':productname', $unknown_product, PDO::PARAM_STR, MAX_PRODUCT_LEN);
+          $sth->execute();
+          $ids[$unknown_product] = $dbh->lastInsertId();
+
+        } catch (Exception $e) {
+          error_log($e->getMessage());
+          $res['ERR'] = ERR_INPUT_DATA_MALFORMED;
+          finish($res);
+        }
+      }
+
+      // insert all products into list
+      try {
+        $inQuery = implode(',', array_fill(0, count($ids), "($lid,?,?)"));
+        $sth = $dbh->prepare('INSERT INTO list_elements(lid,pid,quantity) VALUES ' . $inQuery);
+        for($i = 1, $j = 0; $i <= count($ids) * 2; $i += 2, $j++) {
+          $product = $data['list_products'][$j];
+          $sth->bindValue($i, $ids[$product['n']], PDO::PARAM_INT);
+          $sth->bindValue($i + 1, $product['q'], PDO::PARAM_INT);
+        }
+        $sth->execute();
+
+      } catch (Exception $e) {
+        error_log($e->getMessage());
+      }
+
       $res['JSON_DATA'] = get_list_products($dbh, $lid);
     }
     break;
