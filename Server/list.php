@@ -382,9 +382,9 @@ switch ($action) {
       try {
         for ($i = 1; $i <= count($ids_to_del); $i++) {
           $sth = $dbh->prepare("update list_elements SET quantity = quantity - :q WHERE lid=$lid AND pid=:pid");
-          $product = $products_to_add[$i - 1];
+          $product = $products_to_del[$i - 1];
 
-          $sth->bindParam(':pid', $ids_to_add[$product['n']], PDO::PARAM_INT);
+          $sth->bindParam(':pid', $ids_to_del[$product['n']], PDO::PARAM_INT);
           $sth->bindParam(':q', $product['q'], PDO::PARAM_INT);
           $sth->execute();
         }
@@ -397,9 +397,18 @@ switch ($action) {
 
         finish($res);
       }
-    }
-    $res['JSON_DATA'] = get_list_products($dbh, $lid);
 
+      // cleanup database from 0-valued elements
+      try {
+        $sth = $dbh->exec("DELETE FROM list_elements WHERE quantity<1");
+
+      } catch (Exception $e) {
+        error_log($e->getMessage());
+        $res['ERR'] = ERR_DATABASE;
+      }
+    }
+
+    $res['JSON_DATA'] = get_list_products($dbh, $lid);
     break;
 
   /* ACTION GET */
