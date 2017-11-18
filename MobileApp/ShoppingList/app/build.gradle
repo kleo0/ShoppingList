@@ -29,5 +29,6 @@ dependencies {
     compile 'com.rmtheis:tess-two:8.0.0'
     compile 'com.beardedhen:androidbootstrap:2.3.2'
     compile 'com.koushikdutta.ion:ion:2.+'
+    compile 'com.android.support:design:26.+'
     testCompile 'junit:junit:4.12'
 }
