@@ -139,6 +139,34 @@ function get_products_id(PDO $dbh, array $product_names) {
   return $ids;
 }
 
+function get_create_pids_from_names(PDO $dbh, array $mixed_products) {
+  $product_names = [];
+  foreach ($mixed_products as $product) {
+    array_push($product_names, $product['n']);
+  }
+  $ids = get_products_id($dbh, $product_names);
+
+  // get unknown products, diff between names, and keys (names) of known products
+  $unknown_products = array_diff($product_names, array_keys($ids));
+
+  // insert unknown products & get their ids
+  foreach ($unknown_products as $unknown_product) {
+    try {
+      $sth = $dbh->prepare("INSERT INTO products(productname) VALUES (:productname)");
+      $sth->bindParam(':productname', $unknown_product, PDO::PARAM_STR, MAX_PRODUCT_LEN);
+      $sth->execute();
+      $ids[$unknown_product] = $dbh->lastInsertId();
+
+    } catch (Exception $e) {
+      error_log($e->getMessage());
+      $res['ERR'] = ERR_INPUT_DATA_MALFORMED;
+      finish($res);
+    }
+  }
+
+  return $ids;
+}
+
 /* standard script */
 if (!$db_ok) {
   $res['ERR'] = ERR_DATABASE;
@@ -241,29 +269,7 @@ switch ($action) {
       }
 
       // get all known pids
-      $product_names = [];
-      foreach ($data['list_products'] as $product) {
-        array_push($product_names, $product['n']);
-      }
-      $ids = get_products_id($dbh, $product_names);
-
-      // get unknown products, diff between names, and keys (names) of known products
-      $unknown_products = array_diff($product_names, array_keys($ids));
-
-      // insert unknown products & get their ids
-      foreach ($unknown_products as $unknown_product) {
-        try {
-          $sth = $dbh->prepare("INSERT INTO products(productname) VALUES (:productname)");
-          $sth->bindParam(':productname', $unknown_product, PDO::PARAM_STR, MAX_PRODUCT_LEN);
-          $sth->execute();
-          $ids[$unknown_product] = $dbh->lastInsertId();
-
-        } catch (Exception $e) {
-          error_log($e->getMessage());
-          $res['ERR'] = ERR_INPUT_DATA_MALFORMED;
-          finish($res);
-        }
-      }
+      $ids = get_create_pids_from_names($dbh, $data['list_products']);
 
       // insert all products into list
       try {
@@ -308,9 +314,92 @@ switch ($action) {
     }
     break;
 
-  /* mod */
+  /* ACTION MOD */
+  // Requires input data:
+  //   $data = {list_id: [<LIST_ID>], add: [<LIST_PRODUCTS>], del: [<LIST_PRODUCTS]}
+  // Returns:
+  //   See: get_list_products(...)
   case ACTIONS[2]:
-    // TODO
+    /* parameters check */
+    if (!array_key_exists('list_id', $data) || !array_key_exists('add', $data) ||
+      !array_key_exists('del', $data)) {
+
+      $res['ERR'] = ERR_NOT_ALL_VARS_ARE_SET;
+      finish($res);
+    }
+    $lid = intval($data['list_id']);
+
+    /* perm check */
+    if(!check_user_list_permission($dbh, $lid, $uid)) {
+      $res['ERR'] = ERR_USER_NOT_AUTHORIZED;
+      finish($res);
+    }
+
+    /* get lists */
+    $products_to_add = $data['add'];
+    $products_to_del = $data['del'];
+
+    /* process lists */
+    // ADD LIST
+    if(count($products_to_add) > 0) {
+      // get all known ids & create if product is new
+      $ids_to_add = get_create_pids_from_names($dbh, $products_to_add);
+
+      // insert values
+      $dbh->beginTransaction();
+      try {
+        for($i=1,$j=0; $i<=count($ids_to_add) * 2; $i+=2, $j++) {
+          $sth = $dbh->prepare("insert into list_elements(lid,pid,quantity) values ($lid,:pid,:q) ".
+            "on duplicate key update quantity = quantity + :q");
+          $product = $products_to_add[$j];
+
+          $sth->bindParam(':pid', $ids_to_add[$product['n']], PDO::PARAM_INT);
+          $sth->bindParam(':q', $product['q'], PDO::PARAM_INT);
+          $sth->execute();
+        }
+        $dbh->commit();
+
+      } catch (Exception $e) {
+        error_log($e->getMessage());
+        $dbh->rollBack();
+        $res['ERR'] = ERR_DATABASE;
+
+        finish($res);
+      }
+    }
+
+    // DEL LIST
+    if(count($products_to_del) > 0) {
+      // get only known product ids (because we want to delete / decrease products)
+      $product_names = [];
+      foreach ($products_to_del as $product) {
+        array_push($product_names, $product['n']);
+      }
+      $ids_to_del = get_products_id($dbh, $product_names);
+
+      // delete values
+      $dbh->beginTransaction();
+      try {
+        for ($i = 1; $i <= count($ids_to_del); $i++) {
+          $sth = $dbh->prepare("update list_elements SET quantity = quantity - :q WHERE lid=$lid AND pid=:pid");
+          $product = $products_to_add[$i - 1];
+
+          $sth->bindParam(':pid', $ids_to_add[$product['n']], PDO::PARAM_INT);
+          $sth->bindParam(':q', $product['q'], PDO::PARAM_INT);
+          $sth->execute();
+        }
+        $dbh->commit();
+
+      } catch (Exception $e) {
+        $dbh->rollBack();
+        error_log($e->getMessage());
+        $res['ERR'] = ERR_DATABASE;
+
+        finish($res);
+      }
+    }
+    $res['JSON_DATA'] = get_list_products($dbh, $lid);
+
     break;
 
   /* ACTION GET */
