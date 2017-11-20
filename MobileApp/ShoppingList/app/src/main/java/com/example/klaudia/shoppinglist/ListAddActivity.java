@@ -48,7 +48,7 @@ public class ListAddActivity extends AppCompatActivity {
     ArrayAdapter<String> arrayAdapter;
     ArrayList<String> arrayList;
     JSONArray productsJArray;
-    ArrayList usersArray;
+    ArrayList<String> usersArray;
     Integer step;
 
     StoreData storeData;
@@ -269,7 +269,7 @@ public class ListAddActivity extends AppCompatActivity {
         try {
             sendJSON.put("list_name", currentName);
             sendJSON.put("list_products", productsJArray);
-            sendJSON.put("users", usersArray);
+            sendJSON.put("users", new JSONArray(usersArray));
 
         } catch (JSONException e) {
             e.printStackTrace();

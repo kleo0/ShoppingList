@@ -1,7 +1,10 @@
 package com.example.klaudia.shoppinglist;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.Toast;
@@ -16,17 +19,17 @@ import org.json.JSONException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 public class UserListActivity extends AppCompatActivity {
 
     ListView userList;
     ArrayAdapter<String> arrayAdapter;
     ArrayList<String> arrayList;
-    HashMap<String , String> hashMap;
+    ArrayList<String> nameList;
+    ArrayList<String> idList;
 
     StoreData storeData;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,18 +38,21 @@ public class UserListActivity extends AppCompatActivity {
 
         userList = (ListView) findViewById(R.id.userList);
         arrayList = new ArrayList<String>();
-        hashMap = new HashMap<String, String>();
+        idList = new ArrayList<String>();
+        nameList = new ArrayList<String>();
+
 
         storeData = new StoreData(this);
 
+        ShowList();
         GetData();
     }
 
     public void SetList() {
-        for(Map.Entry<String, String> entry : hashMap.entrySet()) {
-            arrayList.add(entry.getValue());
+        for (String entry : nameList) {
+            arrayList.add(entry);
         }
-        arrayAdapter = new ArrayAdapter<String>(this, R.layout.addlistrow, arrayList);
+        arrayAdapter = new ArrayAdapter<String>(this, R.layout.addlistrowbutton, arrayList);
         userList.setAdapter(arrayAdapter);
     }
 
@@ -55,8 +61,8 @@ public class UserListActivity extends AppCompatActivity {
             Ion.with(getApplicationContext())
                     .load("http://skyapplab.duckdns.org:7777/list.php")
                     .setBodyParameter("token", URLEncoder.encode(storeData.GetToken(), "UTF-8"))
-                    .setBodyParameter("action","dir")
-                    .setBodyParameter("data","{}")
+                    .setBodyParameter("action", "dir")
+                    .setBodyParameter("data", "{}")
                     .asJsonObject()
                     .setCallback(new FutureCallback<JsonObject>() {
                         @Override
@@ -72,10 +78,10 @@ public class UserListActivity extends AppCompatActivity {
                                     } catch (JSONException e1) {
                                         e1.printStackTrace();
                                     }
-                                    for(int i = 0; i<jArray.length(); i++) {
+                                    for (int i = 0; i < jArray.length(); i++) {
                                         try {
-                                            hashMap.put(jArray.getJSONObject(i).getString("id"),
-                                                    jArray.getJSONObject(i).getString("n"));
+                                            idList.add(jArray.getJSONObject(i).getString("id"));
+                                            nameList.add(jArray.getJSONObject(i).getString("n"));
                                         } catch (JSONException e1) {
                                             e1.printStackTrace();
                                         }
@@ -84,15 +90,27 @@ public class UserListActivity extends AppCompatActivity {
                                     SetList();
 
                                 } else {
-                                    Toast.makeText(getApplicationContext(), "Send data error!"+result.get("ERR").toString(), Toast.LENGTH_LONG).show();
+                                    Toast.makeText(getApplicationContext(), "Send data error!" + result.get("ERR").toString(), Toast.LENGTH_LONG).show();
                                 }
                             } else {
-                                Toast.makeText(getApplicationContext(),"Check internet connection!", Toast.LENGTH_LONG).show();
+                                Toast.makeText(getApplicationContext(), "Check internet connection!", Toast.LENGTH_LONG).show();
                             }
                         }
                     });
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
+    }
+
+    public void ShowList() {
+        userList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                Intent intent = new Intent(view.getContext(), ListActivity.class);
+                intent.putExtra("lid",idList.get(i));
+                startActivity(intent);
+            }
+        });
+
     }
 }
