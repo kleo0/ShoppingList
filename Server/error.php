@@ -1,7 +1,8 @@
 <?php
 
 function finish($obj) {
-  print(stripslashes(json_encode($obj)));
+  error_log(json_encode($obj));
+  print((json_encode($obj)));
   die;
 }
 

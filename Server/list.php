@@ -31,7 +31,7 @@ function get_list_products(PDO $dbh, $lid)
       $elem = array('n' => $r['productname'], 'q' => $r['quantity']);
       array_push($products, $elem);
     }
-    $data['products'] = json_encode($products);
+    $data['products'] = $products;
 
   } catch (Exception $e) {
     die($e->getMessage());
@@ -52,13 +52,13 @@ function get_list_products(PDO $dbh, $lid)
       $elem = $r['nickname'];
       array_push($users, $elem);
     }
-    $data['users'] = json_encode($users);
+    $data['users'] = $users;
 
   } catch (Exception $e) {
     die($e->getMessage());
   }
 
-  return stripslashes(json_encode($data));
+  return $data;
 }
 
 /* Check user permission to RW on list */
