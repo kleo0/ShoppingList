@@ -15,6 +15,7 @@
 
         <com.beardedhen.androidbootstrap.BootstrapButton
             android:layout_width="match_parent"
+            android:id="@+id/addButton"
             android:layout_height="wrap_content"
             android:paddingStart="10dp"
             android:paddingLeft="10dp"
@@ -27,6 +28,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:padding="10dp"
+            android:id="@+id/saveButton"
             app:roundedCorners="true"
             android:layout_weight="0.3"
             android:backgroundTint="#009966"
@@ -60,6 +62,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:backgroundTint="@color/colorPrimary"
+        android:id="@+id/scanButton"
         app:paddingStart="10dp"
         app:paddingEnd="10dp"
         app:roundedCorners="true"

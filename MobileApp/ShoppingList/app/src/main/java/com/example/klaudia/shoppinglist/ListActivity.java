@@ -1,11 +1,16 @@
 package com.example.klaudia.shoppinglist;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.graphics.Color;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.style.UpdateAppearance;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -39,12 +44,15 @@ public class ListActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_list);
 
-        Intent i= getIntent();
+        Intent i = getIntent();
         lid = i.getStringExtra("lid");
         name = i.getStringExtra("name");
 
         storeData = new StoreData(this);
         CheckButton();
+        AddButton();
+        SaveButton();
+        ScanButton();
         productList = new ArrayList<Product>();
         ReadData();
 
@@ -82,9 +90,9 @@ public class ListActivity extends AppCompatActivity {
 
                 ArrayList<Product> productList2 = dataAdapter.ProductList;
                 ArrayList<Product> template = new ArrayList<Product>();
-                for(int i=0;i<productList2.size();i++){
+                for (int i = 0; i < productList2.size(); i++) {
                     Product product = productList2.get(i);
-                    if(!product.isSelected()){
+                    if (!product.isSelected()) {
                         template.add(product);
                     }
                 }
@@ -103,7 +111,7 @@ public class ListActivity extends AppCompatActivity {
     public void ReadData() {
         JSONObject obj = new JSONObject();
         try {
-            obj.put("list_id",lid);
+            obj.put("list_id", lid);
         } catch (JSONException e) {
             e.printStackTrace();
         }
@@ -124,8 +132,8 @@ public class ListActivity extends AppCompatActivity {
 
                                     JsonArray products = array.get("products").getAsJsonArray();
                                     for (int i = 0; i < products.size(); i++) {
-                                        Product product = new Product(products.get(i).getAsJsonObject().get("n")+" "+
-                                                products.get(i).getAsJsonObject().get("q"),false);
+                                        Product product = new Product(products.get(i).getAsJsonObject().get("n") + " " +
+                                                products.get(i).getAsJsonObject().get("q"), false);
                                         productList.add(product);
                                     }
                                     DisplayList();
@@ -141,5 +149,76 @@ public class ListActivity extends AppCompatActivity {
         } catch (UnsupportedEncodingException e) {
             e.printStackTrace();
         }
+    }
+
+    public void AddButton() {
+        BootstrapButton myButton = (BootstrapButton) findViewById(R.id.addButton);
+        myButton.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+                //dialog button
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(ListActivity.this);
+                alertDialogBuilder.setTitle("Product");
+                alertDialogBuilder.setMessage("Add new product");
+
+                final EditText input = new EditText(ListActivity.this);
+                input.setTextColor(Color.BLACK);
+                alertDialogBuilder.setView(input);
+
+                final String[] value = new String[1];
+                alertDialogBuilder.setPositiveButton("OK",
+                        new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface arg0, int arg1) {
+                                UpdateList(input.getText().toString());
+                                return;
+                            }
+                        });
+
+                AlertDialog alertDialog = alertDialogBuilder.create();
+                alertDialog.show();
+
+
+
+            }
+
+        });
+    }
+
+    public void UpdateList(String input) {
+        ArrayList<Product> productList2 = new ArrayList<Product>();
+        productList2.addAll(dataAdapter.ProductList);
+
+        String[] p = input.split(" ");
+        Product product = new Product(p[0]+ " " + p[1], false);
+        productList2.add(product);
+        dataAdapter.ProductList.clear();
+        productList.clear();
+        productList.addAll(productList2);
+        DisplayList();
+    }
+
+
+    public void SaveButton() {
+        BootstrapButton myButton = (BootstrapButton) findViewById(R.id.saveButton);
+        myButton.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+            }
+
+        });
+    }
+
+    public void ScanButton() {
+        BootstrapButton myButton = (BootstrapButton) findViewById(R.id.scanButton);
+        myButton.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+            }
+
+        });
     }
 }
