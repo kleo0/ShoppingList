@@ -35,6 +35,7 @@
         <com.beardedhen.androidbootstrap.BootstrapButton
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:id="@+id/deleteButton"
             android:paddingEnd="10dp"
             app:roundedCorners="true"
             android:paddingRight="10dp"
@@ -50,10 +51,9 @@
         android:orientation="vertical">
 
         <ListView
+            android:id="@+id/itemList"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/itemList">
-        </ListView>
+            android:layout_height="wrap_content"></ListView>
     </LinearLayout>
 
     <com.beardedhen.androidbootstrap.BootstrapButton
