@@ -30,7 +30,6 @@ import com.google.gson.JsonObject;
 import com.koushikdutta.async.future.FutureCallback;
 import com.koushikdutta.ion.Ion;
 
-import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -425,11 +424,11 @@ public class ListActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
             Bitmap photo = (Bitmap) data.getExtras().get("data");
-            MakeImageRecognition(photo);
+            makeImageRecognition(photo);
         }
     }
 
-    private void MakeImageRecognition(Bitmap photo) {
+    private void makeImageRecognition(Bitmap photo) {
         if(photo == null) {
             Log.e("LIST", "Cannot get image from camera!");
             return;
@@ -459,7 +458,7 @@ public class ListActivity extends AppCompatActivity {
                             if (result != null) {
                                 if (result.get("ERR").toString().equals("0")) {
                                     JsonArray array = result.get("JSON_DATA").getAsJsonArray();
-                                    OnDataRecognized(array);
+                                    onDataRecognized(array);
 
                                 } else {
                                     Toast.makeText(getApplicationContext(), "Send data error!" + result.get("ERR").toString(), Toast.LENGTH_LONG).show();
@@ -474,7 +473,33 @@ public class ListActivity extends AppCompatActivity {
         }
     }
 
-    private void OnDataRecognized(JsonArray jsonArray) {
+    private void onDataRecognized(JsonArray jsonArray) {
         Toast.makeText(getApplicationContext(), jsonArray.toString(), Toast.LENGTH_LONG).show();
+
+        int n = jsonArray.size();
+        for(int i=0; i<n; ++i) {
+            JsonObject jsonObject = jsonArray.get(i).getAsJsonObject();
+            String name = jsonObject.get("n").getAsString();
+            int quantity = jsonObject.get("q").getAsInt();
+
+            Product product = getProductByName(name);
+            if(product == null) {
+                continue;
+            }
+
+            product.setSelected(true);
+        }
+
+        DisplayList();
+    }
+
+    private Product getProductByName(String name) {
+        for (Product product : productList) {
+            if(product.name.contains(name)) {
+                return product;
+            }
+        }
+
+        return null;
     }
 }
