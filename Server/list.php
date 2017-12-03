@@ -3,8 +3,9 @@
 require_once "connect.php";
 require_once "error.php";
 require_once "consts.php";
+require_once "image_recognition.php";
 
-const ACTIONS = ["new", "del", "mod", 'get', 'dir', 'share'];
+const ACTIONS = ["new", "del", "mod", 'get', 'dir', 'share', 'process'];
 
 $res = [
   'ERR' => ERR_OK,
@@ -480,6 +481,23 @@ switch ($action) {
 
     share_list_with_users($dbh, $lid, $users);
     $res['JSON_DATA'] = get_list_products($dbh, $lid);
+    break;
+
+  /* ACTION PROCESS */
+  // Requires input data:
+  //   $data = {list_id: <LIST_ID>, img: <image_data>}
+  // Returns:
+  //   See: [{n: <PRODUCT_NAME>, q: <QUANTITY>}]
+  case ACTIONS[6]:
+
+    if (!array_key_exists('img', $data)) {
+      $res['ERR'] = ERR_NOT_ALL_VARS_ARE_SET;
+      finish($res);
+    }
+    $img_raw = $data['img'];
+
+    // recognize image
+    $res['JSON_DATA'] = get_json_from_image($img_raw);
     break;
 
   default:
