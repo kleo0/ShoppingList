@@ -16,6 +16,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Base64;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -29,9 +30,11 @@ import com.google.gson.JsonObject;
 import com.koushikdutta.async.future.FutureCallback;
 import com.koushikdutta.ion.Ion;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.io.ByteArrayOutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -422,8 +425,56 @@ public class ListActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
             Bitmap photo = (Bitmap) data.getExtras().get("data");
-            //imageView.setImageBitmap(photo);
-            //TODO send picture, check list
+            MakeImageRecognition(photo);
         }
+    }
+
+    private void MakeImageRecognition(Bitmap photo) {
+        if(photo == null) {
+            Log.e("LIST", "Cannot get image from camera!");
+            return;
+        }
+
+        // encode photo into base64
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        photo.compress(Bitmap.CompressFormat.JPEG, 90, byteArrayOutputStream);
+
+        byte[] bytes = byteArrayOutputStream.toByteArray();
+        String encodedPhoto = Base64.encodeToString(bytes, Base64.DEFAULT);
+
+        JsonObject obj = new JsonObject();
+        obj.addProperty("img", encodedPhoto);
+
+        //imageView.setImageBitmap(photo);
+        try {
+            Ion.with(getApplicationContext())
+                    .load("http://skyapplab.duckdns.org:7777/list.php")
+                    .setBodyParameter("token", URLEncoder.encode(storeData.GetToken(), "UTF-8"))
+                    .setBodyParameter("action", "process")
+                    .setBodyParameter("data", obj.toString())
+                    .asJsonObject()
+                    .setCallback(new FutureCallback<JsonObject>() {
+                        @Override
+                        public void onCompleted(Exception e, JsonObject result) {
+                            if (result != null) {
+                                if (result.get("ERR").toString().equals("0")) {
+                                    JsonArray array = result.get("JSON_DATA").getAsJsonArray();
+                                    OnDataRecognized(array);
+
+                                } else {
+                                    Toast.makeText(getApplicationContext(), "Send data error!" + result.get("ERR").toString(), Toast.LENGTH_LONG).show();
+                                }
+                            } else {
+                                Toast.makeText(getApplicationContext(), "Check internet connection!", Toast.LENGTH_LONG).show();
+                            }
+                        }
+                    });
+        } catch (UnsupportedEncodingException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void OnDataRecognized(JsonArray jsonArray) {
+        Toast.makeText(getApplicationContext(), jsonArray.toString(), Toast.LENGTH_LONG).show();
     }
 }

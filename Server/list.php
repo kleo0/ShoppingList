@@ -185,6 +185,7 @@ $action = $_POST['action'];
 $uid = -123;
 
 /* Verify correctness of JSON data */
+error_log($_POST['data']);
 $data = json_decode($_POST['data'], true);
 if ($data === null && json_last_error() !== JSON_ERROR_NONE) {
   error_log(json_last_error_msg());
