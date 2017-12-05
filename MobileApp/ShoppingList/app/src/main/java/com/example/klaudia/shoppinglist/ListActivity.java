@@ -471,6 +471,12 @@ public class ListActivity extends AppCompatActivity {
                                     JsonArray array = result.get("JSON_DATA").getAsJsonArray();
                                     onDataRecognized(array);
 
+                                } else if (result.get("ERR").toString().equals("11")) {
+                                    Toast.makeText(getApplicationContext(),
+                                            "Products from receipt cannot be recognized :( Try another shot!",
+                                            Toast.LENGTH_LONG)
+                                            .show();
+
                                 } else {
                                     Toast.makeText(getApplicationContext(), "Send data error!" + result.get("ERR").toString(), Toast.LENGTH_LONG).show();
                                 }
