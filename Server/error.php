@@ -22,3 +22,4 @@ const ERR_ACTION_NOT_RECOGNIZED  = 7;     // selected action is not valid
 const ERR_INVALID_PRODUCTS_DATA  = 8;     // not all required fields are set correctly
 const ERR_INPUT_DATA_MALFORMED   = 9;     // input data is not in valid or expected format
 const ERR_USER_NOT_AUTHORIZED    = 10;    // user is not added to list, so cannot use it
+const ERR_IMAGE_NOT_RECOGNIZED   = 11;    // text from image is not recognized

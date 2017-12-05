@@ -499,6 +499,11 @@ switch ($action) {
 
     // recognize image
     $res['JSON_DATA'] = get_json_from_image($img_raw);
+    if($res['JSON_DATA'] == "") {
+      $res['ERR'] = ERR_IMAGE_NOT_RECOGNIZED;
+      finish($res);
+    }
+
     break;
 
   /* ACTION STAT_LIST_USER */
