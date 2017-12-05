@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.example.klaudia.shoppinglist">
+
     <uses-permission android:name="android.permission.CAMERA" />
 
     <application
@@ -24,8 +25,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".UserListActivity" />
-        <activity android:name=".ListActivity">
-        </activity>
+        <activity android:name=".ListActivity"></activity>
+        <activity android:name=".StatsActivity"></activity>
     </application>
 
 </manifest>

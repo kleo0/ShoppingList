@@ -44,6 +44,17 @@
             android:layout_weight="0.3"
             android:backgroundTint="#008099"
             android:text="DELETE"/>
+
+        <com.beardedhen.androidbootstrap.BootstrapButton
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:id="@+id/statsButton"
+            android:paddingEnd="10dp"
+            app:roundedCorners="true"
+            android:paddingRight="10dp"
+            android:layout_weight="0.3"
+            android:backgroundTint="#171717"
+            android:text="STATS"/>
     </LinearLayout>
 
     <LinearLayout

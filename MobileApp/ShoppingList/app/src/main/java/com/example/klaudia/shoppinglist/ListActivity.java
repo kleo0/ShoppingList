@@ -73,6 +73,17 @@ public class ListActivity extends AppCompatActivity {
         productList = new ArrayList<Product>();
         ReadData();
 
+        BootstrapButton statsButton = (BootstrapButton)findViewById(R.id.statsButton);
+        statsButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), StatsActivity.class);
+                intent.putExtra("token", URLEncoder.encode(storeData.GetToken()));
+                intent.putExtra("lid", lid);
+
+                startActivity(intent);
+            }
+        });
     }
 
     public void DisplayList() {
