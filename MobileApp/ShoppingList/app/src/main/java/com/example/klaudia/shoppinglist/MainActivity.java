@@ -13,6 +13,10 @@ public class MainActivity extends AppCompatActivity {
     BootstrapButton signOut;
     BootstrapButton listAdd;
     BootstrapButton listShow;
+    BootstrapButton statsShow;
+
+    public final static String KEY_SHOW_STATS = "show stats";
+    public final static String KEY_EDIT_LIST  = "edit list";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,10 +26,12 @@ public class MainActivity extends AppCompatActivity {
         signOut = (BootstrapButton) findViewById(R.id.mainSignOut);
         listAdd = (BootstrapButton) findViewById(R.id.mainAddList);
         listShow = (BootstrapButton) findViewById(R.id.mainMainList);
+        statsShow = (BootstrapButton) findViewById(R.id.mainStatistics);
 
         SignOut();
         ListAdd();
         ListShow();
+        StatsShow();
     }
 
     public void SignOut() {
@@ -34,7 +40,6 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Intent intent = new Intent(view.getContext(), LoginActivity.class);
                 startActivity(intent);
-                finish();
             }
         });
 
@@ -46,7 +51,6 @@ public class MainActivity extends AppCompatActivity {
             public void onClick(View view) {
                 Intent intent = new Intent(view.getContext(), ListAddActivity.class);
                 startActivity(intent);
-                finish();
             }
         });
     }
@@ -56,8 +60,19 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(view.getContext(), UserListActivity.class);
+                intent.putExtra("onclick", KEY_EDIT_LIST);
                 startActivity(intent);
-                finish();
+            }
+        });
+    }
+
+    public void StatsShow() {
+        statsShow.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(v.getContext(), UserListActivity.class);
+                intent.putExtra("onclick", KEY_SHOW_STATS);
+                startActivity(intent);
             }
         });
     }

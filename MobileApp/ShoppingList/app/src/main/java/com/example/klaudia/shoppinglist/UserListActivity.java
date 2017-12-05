@@ -29,6 +29,7 @@ public class UserListActivity extends AppCompatActivity {
     ArrayList<String> idList;
 
     StoreData storeData;
+    String action;
 
 
     @Override
@@ -40,6 +41,9 @@ public class UserListActivity extends AppCompatActivity {
         arrayList = new ArrayList<String>();
         idList = new ArrayList<String>();
         nameList = new ArrayList<String>();
+
+        Intent intent = getIntent();
+        action = intent.getStringExtra("onclick");
 
 
         storeData = new StoreData(this);
@@ -106,10 +110,19 @@ public class UserListActivity extends AppCompatActivity {
         userList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Intent intent = new Intent(view.getContext(), ListActivity.class);
-                intent.putExtra("lid",idList.get(i));
-                intent.putExtra("name",nameList.get(i));
-                startActivity(intent);
+
+                if(action.equals(MainActivity.KEY_EDIT_LIST)) {
+
+                    Intent intent = new Intent(view.getContext(), ListActivity.class);
+                    intent.putExtra("lid", idList.get(i));
+                    intent.putExtra("name", nameList.get(i));
+                    startActivity(intent);
+                } else {
+                    Intent intent = new Intent(view.getContext(), StatsActivity.class);
+                    intent.putExtra("lid", idList.get(i));
+                    intent.putExtra("token", URLEncoder.encode(storeData.GetToken()));
+                    startActivity(intent);
+                }
             }
         });
 

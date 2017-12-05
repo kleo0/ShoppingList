@@ -12,17 +12,20 @@
         android:layout_height="wrap_content"
         android:id="@+id/contributionChart"
         android:layout_weight="0.5"
+        android:padding="2dp"
         >
 
     </com.github.mikephil.charting.charts.PieChart>
 
-    <com.github.mikephil.charting.charts.BarChart
+    <com.github.mikephil.charting.charts.HorizontalBarChart
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/popularityChart"
         android:layout_weight="0.5"
+        android:padding="2dp"
+
         >
 
-    </com.github.mikephil.charting.charts.BarChart>
+    </com.github.mikephil.charting.charts.HorizontalBarChart>
 
 </LinearLayout>
