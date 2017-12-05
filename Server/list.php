@@ -5,7 +5,7 @@ require_once "error.php";
 require_once "consts.php";
 require_once "image_recognition.php";
 
-const ACTIONS = ["new", "del", "mod", 'get', 'dir', 'share', 'process', 'stat_user'];
+const ACTIONS = ["new", "del", "mod", 'get', 'dir', 'share', 'process', 'stat_list_user','stat_list_product'];
 
 $res = [
   'ERR' => ERR_OK,
@@ -501,7 +501,7 @@ switch ($action) {
     $res['JSON_DATA'] = get_json_from_image($img_raw);
     break;
 
-  /* ACTION STAT_USER */
+  /* ACTION STAT_LIST_USER */
   // Requires input data:
   //   $data = {list_id: <LIST_ID>}
   // Returns:
@@ -533,6 +533,50 @@ switch ($action) {
         $stats['total'] += $r['q'];
 
         array_push($stats['contributors'], ['user' => $r['user'], 'count' => $r['q']]);
+      }
+
+    } catch (Exception $e) {
+      error_log($e->getMessage());
+      die;
+    }
+
+    $res['JSON_DATA'] = $stats;
+
+    break;
+
+
+  /* ACTION STAT_LIST_PRODUCT */
+  // Requires input data:
+  //   $data = {list_id: <LIST_ID>}
+  // Returns:
+  //   $out  = {total: <TOTAL_COUNT>, contributors: [{product: <PRODUCT>, count: <COUNT>}, ...]}
+  case ACTIONS[8]:
+
+    if (!array_key_exists('list_id', $data)) {
+      $res['ERR'] = ERR_NOT_ALL_VARS_ARE_SET;
+      finish($res);
+    }
+    $lid = intval($data['list_id']);
+
+    if(!check_user_list_permission($dbh, $lid, $uid)) {
+      $res['ERR'] = ERR_USER_NOT_AUTHORIZED;
+      finish($res);
+    }
+
+    // get the user contribution stats
+    $stats = ['total' => 0, 'contributors' => []];
+    try {
+      $sth = $dbh->prepare("select products.productname as product,SUM(history.quantity) as q " .
+        "from products,history where history.lid=:lid AND history.pid=products.pid GROUP BY product");
+      $sth->bindParam(':lid', $lid);
+      $sth->execute();
+
+      $result = $sth->fetchAll();
+
+      foreach ($result as $r) {
+        $stats['total'] += $r['q'];
+
+        array_push($stats['contributors'], ['product' => $r['product'], 'count' => $r['q']]);
       }
 
     } catch (Exception $e) {
