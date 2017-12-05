@@ -5,7 +5,7 @@ require_once "error.php";
 require_once "consts.php";
 require_once "image_recognition.php";
 
-const ACTIONS = ["new", "del", "mod", 'get', 'dir', 'share', 'process'];
+const ACTIONS = ["new", "del", "mod", 'get', 'dir', 'share', 'process', 'stat_user'];
 
 $res = [
   'ERR' => ERR_OK,
@@ -499,6 +499,49 @@ switch ($action) {
 
     // recognize image
     $res['JSON_DATA'] = get_json_from_image($img_raw);
+    break;
+
+  /* ACTION STAT_USER */
+  // Requires input data:
+  //   $data = {list_id: <LIST_ID>}
+  // Returns:
+  //   $out  = {total: <TOTAL_COUNT>, contributors: [{user: <USERNAME>, count: <COUNT>}, ...]}
+  case ACTIONS[7]:
+
+    if (!array_key_exists('list_id', $data)) {
+      $res['ERR'] = ERR_NOT_ALL_VARS_ARE_SET;
+      finish($res);
+    }
+    $lid = intval($data['list_id']);
+
+    if(!check_user_list_permission($dbh, $lid, $uid)) {
+      $res['ERR'] = ERR_USER_NOT_AUTHORIZED;
+      finish($res);
+    }
+
+    // get the user contribution stats
+    $stats = ['total' => 0, 'contributors' => []];
+    try {
+      $sth = $dbh->prepare("select users.nickname as user,SUM(history.quantity) as q from users,history ".
+        "where history.lid=:lid AND history.uid=users.uid GROUP BY history.uid");
+      $sth->bindParam(':lid', $lid);
+      $sth->execute();
+
+      $result = $sth->fetchAll();
+
+      foreach ($result as $r) {
+        $stats['total'] += $r['q'];
+
+        array_push($stats['contributors'], ['user' => $r['user'], 'count' => $r['q']]);
+      }
+
+    } catch (Exception $e) {
+      error_log($e->getMessage());
+      die;
+    }
+
+    $res['JSON_DATA'] = $stats;
+
     break;
 
   default:
