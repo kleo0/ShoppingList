@@ -389,6 +389,15 @@ switch ($action) {
           $sth->bindParam(':pid', $ids_to_del[$product['n']], PDO::PARAM_INT);
           $sth->bindParam(':q', $product['q'], PDO::PARAM_INT);
           $sth->execute();
+
+          // update history
+          $sth = $dbh->prepare("insert into history(lid,uid,pid,quantity) VALUES (:lid,uid,:pid,:quantity)");
+          $sth->bindParam(':pid', $ids_to_del[$product['n']], PDO::PARAM_INT);
+          $sth->bindParam(':quantity', $product['q'], PDO::PARAM_INT);
+          $sth->bindParam(':lid', $lid, PDO::PARAM_INT);
+          $sth->bindParam(':uid', $uid, PDO::PARAM_INT);
+
+          $sth->execute();
         }
         $dbh->commit();
 
