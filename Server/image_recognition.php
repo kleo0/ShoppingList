@@ -5,7 +5,19 @@ function get_json_from_image($raw) {
 
   // error, image not recognized
   $result = "";
+  $out = [];
+  exec("python ocr.py", $out);
 
-  //$result = [["n" => "apple", "q"=>"1"],["n" => "banana", "q"=>"1"]];
+  if(count($out) > 0 && $out[0] != "") {
+    $result = [];
+
+    foreach ($out as $item) {
+      $raw = explode(';', $item);
+
+      array_push($result, ["n" => $raw[1], "q" => $raw[0]]);
+    }
+
+  }
+
   return $result;
 }
